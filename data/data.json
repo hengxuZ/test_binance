@@ -1,0 +1,6 @@
+{
+    "symbol": "GRTUSDT",
+    "waitTime": 0.3,
+    "expectVolare":0.001,
+    "amount":10
+}

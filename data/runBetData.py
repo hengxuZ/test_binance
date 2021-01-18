@@ -26,6 +26,10 @@ class RunBetData():
     def get_orderId(self):
         data_json = self._get_json_data()
         return data_json['orderId']    
+
+    def get_openLeverageBase(self):
+        data_json = self._get_json_data()
+        return data_json['openLeverageBase']    
     
     def get_amount(self):
         '''获取交易数量'''

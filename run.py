@@ -13,20 +13,13 @@ class MainRun():
         self.symbol = runbet.get_symbol() # 运行的交易对
         self.waitTime = runbet.get_waitTime() #间隔时间
         self.expectVolare = runbet.get_expectVolare() #预期波动率
-        self.openLeverageBase = 0.5  # 收益率大于基数才能开杠杆 后面会*百分比
+        self.openLeverageBase = runbet.get_openLeverageBase()  # 收益率大于基数才能开杠杆 
         self.amount = runbet.get_amount()
-        
-    # def is_openOpsition(self):
-    #     '''是否已经开仓'''        
-    #     positionInfo = self.get_openPositionInfo()
-        
-    #     openPosition = True if  else False 
-    #     return openPosition
     
     def get_openPositionInfo(self):
         '''获取交易对持仓信息'''
         positionInfo = api.get_positionInfo(self.symbol)
-        print(positionInfo)
+        # print(positionInfo)
         if isinstance(positionInfo,list):
             return positionInfo[0]
         else:
@@ -67,28 +60,28 @@ class MainRun():
                 if volare > 0 and info['notional'] != "0":
                     # 收益率达到某个数-》价格杠杆
                     responseRate = round(float(info['unRealizedProfit']) / leverage / abs(float(info['notional'])),3)  # 盈利率
-                    if responseRate >= self.openLeverageBase/100 * leverage:api.set_leverage(leverage+1)
+                    if responseRate >= self.openLeverageBase * leverage:api.set_leverage(self.symbol,leverage+1)
                         
                 #开仓做多
                 if volare > 0 and not info['notional'] != "0" : msg.buy_market_msg(self.symbol,self.amount)
                 #波动率为负&已经开仓-》减小杠杆
                 if volare < 0 and info['notional'] != "0":
-                    print("波动率为负&已经开仓-》减小杠杆")
-                    if leverage>1 : api.set_leverage(leverage+1)
+                    if leverage>1 : api.set_leverage(self.symbol, leverage+1)
                 # 开仓做空    
                 if volare < 0 and not info['notional'] != "0": msg.sell_market_msg(self.symbol,self.amount)
         else:            
             ins.lastPrice = curPrice # 刚启动上一份时间中市场价格为空  
             
-        print(ins.lastPrice)
+        print("上个时间的价格{price}".format(price=ins.lastPrice))
         time.sleep(60 * ins.waitTime) # 价格间隔时间
         
 if __name__ == "__main__":
     ins = MainRun()
-    # try:
-    #     while True:
-    #         ins.run()
-    # except BaseException as e:
-    #     msg.dingding_warn("报警：交易对{symbol},停止运行".format(symbol=ins.symbol))
-    while True:
-        ins.run()
+    try:
+        while True:
+            ins.run()
+    except BaseException as e:
+        msg.dingding_warn("报警：交易对{symbol},停止运行".format(symbol=ins.symbol))
+    # 调试阶段
+    # while True:
+    #     ins.run()

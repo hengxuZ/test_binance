@@ -14,7 +14,8 @@ class MainRun():
         self.waitTime = runbet.get_waitTime() #间隔时间
         self.expectVolare = runbet.get_expectVolare() #预期波动率
         self.openLeverageBase = runbet.get_openLeverageBase()  # 收益率大于基数才能开杠杆 
-        self.amount = runbet.get_amount()
+        self.amount = runbet.get_amount()      # 买入卖出数量
+        self.maxLoass = runbet.get_maxLoss()   # 最大亏损比率
     
     def get_openPositionInfo(self):
         '''获取交易对持仓信息'''
@@ -45,7 +46,7 @@ class MainRun():
             responseRate = round(float(info['unRealizedProfit']) / leverage / abs(float(info['notional'])),3)  # 盈利率
             # print(info)
             print("收益率:{rate}".format(rate=responseRate))
-            if (leverage != 1 and responseRate <= 0.1) or (leverage == 1 and responseRate <= -0.5): # 满足则平仓
+            if (leverage != 1 and responseRate <= 0.01) or (leverage == 1 and responseRate <= -self.maxLoass): # 满足则平仓
                 self.closePositionDirection(info['positionAmt'])
                           
         # 波动率检测
@@ -53,19 +54,22 @@ class MainRun():
         if ins.lastPrice != None:    
             volare = round((curPrice - ins.lastPrice) / ins.lastPrice,3) # 波动率
             ins.lastPrice = curPrice
-            print(volare)
+            print("波动率：{rate}".format(rate=volare))
             # 超过波动率
             if abs(volare) > self.expectVolare:  
                 # 波动率为正&已经开仓
                 if volare > 0 and info['notional'] != "0":
                     # 收益率达到某个数-》价格杠杆
                     responseRate = round(float(info['unRealizedProfit']) / leverage / abs(float(info['notional'])),3)  # 盈利率
-                    if responseRate >= self.openLeverageBase * leverage:api.set_leverage(self.symbol,leverage+1)
+                    # if responseRate >= self.openLeverageBase * leverage:api.set_leverage(self.symbol,leverage+1)
+                    print("加杠杆！")
+                    api.set_leverage(self.symbol,leverage+1)
                         
                 #开仓做多
                 if volare > 0 and not info['notional'] != "0" : msg.buy_market_msg(self.symbol,self.amount)
                 #波动率为负&已经开仓-》减小杠杆
                 if volare < 0 and info['notional'] != "0":
+                    print("减杠杆！")
                     if leverage>1 : api.set_leverage(self.symbol, leverage+1)
                 # 开仓做空    
                 if volare < 0 and not info['notional'] != "0": msg.sell_market_msg(self.symbol,self.amount)
@@ -77,11 +81,11 @@ class MainRun():
         
 if __name__ == "__main__":
     ins = MainRun()
-    try:
-        while True:
-            ins.run()
-    except BaseException as e:
-        msg.dingding_warn("报警：交易对{symbol},停止运行".format(symbol=ins.symbol))
+    # try:
+    #     while True:
+    #         ins.run()
+    # except BaseException as e:
+    #     msg.dingding_warn("报警：交易对{symbol},停止运行".format(symbol=ins.symbol))
     # 调试阶段
-    # while True:
-    #     ins.run()
+    while True:
+        ins.run()

@@ -23,7 +23,6 @@ class Message():
         
         try:
             res = self.api.future_market_order("BUY",market,quantity)
-            print(res)
             if res['orderId']:
                 buy_info = "报警：趋势交易，币种为：{cointype}。操作为：买入".format(cointype=market)
                 self.dingding_warn(buy_info)

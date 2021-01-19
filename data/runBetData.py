@@ -27,10 +27,10 @@ class RunBetData():
         data_json = self._get_json_data()
         return data_json['orderId']    
 
-    def get_openLeverageBase(self):
-        '''限制提高杠杆的门槛，满足杠杆数*该系数才能增加杠杆'''
+    def get_smallProfit(self):
+        '''限制加仓门槛，满足才能加仓'''
         data_json = self._get_json_data()
-        return data_json['openLeverageBase'] 
+        return data_json['smallProfit'] 
     
     def get_maxLoss(self):
         '''一倍杠杆的情况下最多亏损比率'''

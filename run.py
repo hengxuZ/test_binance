@@ -13,7 +13,7 @@ class MainRun():
         self.symbol = runbet.get_symbol() # 运行的交易对
         self.waitTime = runbet.get_waitTime() #间隔时间
         self.expectVolare = runbet.get_expectVolare() #预期波动率
-        self.openLeverageBase = runbet.get_openLeverageBase()  # 收益率大于基数才能开仓 
+        self.smallProfit = runbet.get_smallProfit()  # 收益率大于基数才能加仓 
         self.amount = runbet.get_amount()      # 买入卖出数量
         self.maxLoass = runbet.get_maxLoss()   # 最大亏损比率
     
@@ -78,31 +78,33 @@ class MainRun():
             # 超过波动率
             if abs(volare) > self.expectVolare: 
                 if volare > 0 : # 满足代表 波动率为+
-
+                    
                     if info['notional'] != "0": #开仓
+                        responseRate = round(float(info['unRealizedProfit']) / leverage / abs(float(info['notional'])),3)  # 盈利率
                         # 做多 加仓
-                        if self.judge_direction(): 
+                        if self.judge_direction(info['positionAmt']) and responseRate >= self.smallProfit: 
                             print("加仓！")
-                            msg.buy_market_msg(self.symbol,self.amount)   
+                            msg.buy_market_msg(self.symbol,self.amount/4)   
                         # 持仓量 != 一手的买入量
-                        elif not self.judge_is_firstPosition(info["positionAmt"]):
-                            print("减仓！")
-                            msg.buy_market_msg(self.symbol,self.amount)                                                                 
+                        # elif not self.judge_is_firstPosition(info["positionAmt"]):
+                        #     print("减仓！")
+                        #     msg.buy_market_msg(self.symbol,self.amount)                                                                 
                     else:
                         print("做多开仓")    
                         msg.buy_market_msg(self.symbol,self.amount)                            
                 
                 else: # 波动率为 负
                     
-                    if info['notional'] != "0":
+                    if info['notional'] != "0": # 开仓
                         # 做多 加仓
-                        if not self.judge_direction(): 
+                        responseRate = round(float(info['unRealizedProfit']) / leverage / abs(float(info['notional'])),3)  # 盈利率
+                        if not self.judge_direction(info['positionAmt']) and responseRate >= self.smallProfit: 
                             print("加仓！")
-                            msg.sell_market_msg(self.symbol,self.amount)   
+                            msg.sell_market_msg(self.symbol,self.amount/4)   # 加仓只加25%
                         # 持仓量 != 一手的买入量
-                        elif not self.judge_is_firstPosition(info["positionAmt"]):
-                            print("减仓！")
-                            msg.buy_market_msg(self.symbol,self.amount)                                                                 
+                        # elif not self.judge_is_firstPosition(info["positionAmt"]):
+                        #     print("减仓！")
+                        #     msg.buy_market_msg(self.symbol,self.amount)                                                                 
                     else:
                         print("做空开仓")    
                         msg.sell_market_msg(self.symbol,self.amount)  

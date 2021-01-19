@@ -4,13 +4,14 @@ import requests,json,time
 
 from app.BinanceAPI import BinanceAPI
 from app.authorization import recv_window,api_secret,api_key, dingding_token
-
+from data.runBetData import RunBetData
+runbet = RunBetData()
 
 class Message():
 
     def __init__(self):
         self.api = BinanceAPI(api_key,api_secret)
-        
+        self.amount = runbet.get_amount() 
 
     def buy_market_msg(self,market,quantity):
         '''
@@ -25,7 +26,7 @@ class Message():
             res = self.api.future_market_order("BUY",market,quantity)
             if res['orderId']:
                 buy_info = "报警：趋势交易，币种为：{cointype}。操作为：买入".format(cointype=market)
-                self.dingding_warn(buy_info)
+                if self.amount == quantity: self.dingding_warn(buy_info)
                 return res                        
         except BaseException as e:
             error_info = "报警：币种为：{cointype},买单失败.api返回内容为:{reject}".format(cointype=market,reject=res['msg'])
@@ -44,7 +45,7 @@ class Message():
             res = self.api.future_market_order("SELL",market,quantity)
             if res['orderId']:
                 buy_info = "报警：趋势交易，币种为：{cointype}。操作为：卖出".format(cointype=market)
-                self.dingding_warn(buy_info)
+                if self.amount == quantity: self.dingding_warn(buy_info)
                 return res                        
         except BaseException as e:
             error_info = "报警：币种为：{cointype},卖单失败.api返回内容为:{reject}".format(cointype=market,reject=res['msg'])

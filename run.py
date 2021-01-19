@@ -79,7 +79,8 @@ class MainRun():
             # 超过波动率
             if abs(volare) > self.expectVolare: 
                 if volare > 0 : # 满足代表 波动率为+
-                    
+                    # 如果收益率超过 最大损失的5倍 则平仓
+                    # if volare > self.maxLoass * 5 : self.closePositionDirection(info['positionAmt'])
                     if info['notional'] != "0": #开仓
                         responseRate = round(float(info['unRealizedProfit']) / leverage / abs(float(info['notional'])),3)  # 盈利率
                         # 做多 加仓

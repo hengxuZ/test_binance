@@ -27,13 +27,25 @@ class MainRun():
             return None
         
     def closePositionDirection(self,positionAmt):
-        '''平仓'''
+        '''执行平仓'''
         print("平仓")
-        if float(positionAmt) < 0 :
+        if float(positionAmt) < 0 : # 小于0代表做空，则做多卖出
             msg.buy_market_msg(self.symbol,self.amount) 
         else:
             msg.sell_market_msg(self.symbol,self.amount) 
     
+    def judge_direction(self, positionAmt):
+        '''
+            判断多还是空
+            @return boolean 做多为True 做空为False
+        '''
+        if float(positionAmt) > 0: #多
+            return True
+        else:
+            return False
+            
+            
+            
     # 主函数
     def run(self):
         
@@ -56,23 +68,29 @@ class MainRun():
             ins.lastPrice = curPrice
             print("波动率：{rate}".format(rate=volare))
             # 超过波动率
-            if abs(volare) > self.expectVolare:  
-                # 波动率为正&已经开仓
-                if volare > 0 and info['notional'] != "0":
-                    # 收益率达到某个数-》价格杠杆
-                    responseRate = round(float(info['unRealizedProfit']) / leverage / abs(float(info['notional'])),3)  # 盈利率
-                    # if responseRate >= self.openLeverageBase * leverage:api.set_leverage(self.symbol,leverage+1)
-                    print("加杠杆！")
-                    api.set_leverage(self.symbol,leverage+1)
-                        
-                #开仓做多
-                if volare > 0 and not info['notional'] != "0" : msg.buy_market_msg(self.symbol,self.amount)
-                #波动率为负&已经开仓-》减小杠杆
-                if volare < 0 and info['notional'] != "0":
-                    print("减杠杆！")
-                    if leverage>1 : api.set_leverage(self.symbol, leverage+1)
-                # 开仓做空    
-                if volare < 0 and not info['notional'] != "0": msg.sell_market_msg(self.symbol,self.amount)
+            if abs(volare) > self.expectVolare: 
+                if info['positionAmt'] > 0 : # 满足代表-波动率为+
+                    if info['notional'] != "0": # 代表 已经开仓
+                        if self.judge_direction(info['positionAmt']):
+                            print("加杠杆！")
+                            if leverage<10 :api.set_leverage(self.symbol,leverage+1)
+                        else:             
+                            print("减杠杆！")
+                            if leverage>1 : api.set_leverage(self.symbol, leverage-1)                                            
+                    else: # 未开仓,做多开仓
+                        msg.buy_market_msg(self.symbol,self.amount)
+                
+                else: # 波动率为 负
+                    if info['notional'] != "0": # 代表 已经开仓
+                        if self.judge_direction(info['positionAmt']):
+                            print("减杠杆！")
+                            if leverage>1 : api.set_leverage(self.symbol,leverage-1)
+                        else:             
+                            print("加杠杆！")
+                            if leverage<10: api.set_leverage(self.symbol, leverage+1)                                            
+                    else: # 未开仓,做空开仓
+                        msg.sell_market_msg(self.symbol,self.amount)                            
+
         else:            
             ins.lastPrice = curPrice # 刚启动上一份时间中市场价格为空  
             

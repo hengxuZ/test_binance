@@ -1,8 +1,8 @@
 {
-    "symbol": "GRTUSDT",
+    "symbol": "OMGUSDT",
     "waitTime": 0.5,
-    "expectVolare":0.01,
-    "amount":10,
+    "expectVolare":0.005,
+    "amount":2,
     "openLeverageBase":0.05,
     "maxLoss":0.01
 }

@@ -35,7 +35,7 @@ class RunBetData():
     def get_maxLoss(self):
         '''一倍杠杆的情况下最多亏损比率'''
         data_json = self._get_json_data()
-        return data_json['openLeverageBase']         
+        return data_json['maxLoss']         
     
     def get_amount(self):
         '''获取交易数量'''

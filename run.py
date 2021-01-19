@@ -29,10 +29,11 @@ class MainRun():
     def closePositionDirection(self,positionAmt):
         '''执行平仓'''
         print("平仓")
+        total = abs(float(positionAmt))
         if float(positionAmt) < 0 : # 小于0代表做空，则做多卖出
-            msg.buy_market_msg(self.symbol,self.amount) 
+            msg.buy_market_msg(self.symbol,total) 
         else:
-            msg.sell_market_msg(self.symbol,self.amount) 
+            msg.sell_market_msg(self.symbol,total) 
     
     def judge_direction(self, positionAmt):
         '''

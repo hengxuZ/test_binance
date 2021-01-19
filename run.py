@@ -69,7 +69,7 @@ class MainRun():
             print("波动率：{rate}".format(rate=volare))
             # 超过波动率
             if abs(volare) > self.expectVolare: 
-                if info['positionAmt'] > 0 : # 满足代表-波动率为+
+                if volare > 0 : # 满足代表 波动率为+
                     if info['notional'] != "0": # 代表 已经开仓
                         if self.judge_direction(info['positionAmt']):
                             print("加杠杆！")

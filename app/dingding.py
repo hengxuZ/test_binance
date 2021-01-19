@@ -22,12 +22,10 @@ class Message():
         '''        
         
         try:
-            self.api.set_leverage(market,1) # 无论买还是卖都要把杠杆设置为1
-
             res = self.api.future_market_order("BUY",market,quantity)
             print(res)
             if res['orderId']:
-                buy_info = "报警：趋势交易，币种为：{cointype}。".format(cointype=market)
+                buy_info = "报警：趋势交易，币种为：{cointype}。操作为：买入".format(cointype=market)
                 self.dingding_warn(buy_info)
                 return res                        
         except BaseException as e:
@@ -44,10 +42,9 @@ class Message():
         '''        
         
         try:
-            self.api.set_leverage(market,1) # 无论买还是卖都要把杠杆设置为1
             res = self.api.future_market_order("SELL",market,quantity)
             if res['orderId']:
-                buy_info = "报警：趋势交易，币种为：{cointype}。".format(cointype=market)
+                buy_info = "报警：趋势交易，币种为：{cointype}。操作为：卖出".format(cointype=market)
                 self.dingding_warn(buy_info)
                 return res                        
         except BaseException as e:

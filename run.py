@@ -13,7 +13,7 @@ class MainRun():
         self.symbol = runbet.get_symbol() # 运行的交易对
         self.waitTime = runbet.get_waitTime() #间隔时间
         self.expectVolare = runbet.get_expectVolare() #预期波动率
-        self.openLeverageBase = runbet.get_openLeverageBase()  # 收益率大于基数才能开杠杆 
+        self.openLeverageBase = runbet.get_openLeverageBase()  # 收益率大于基数才能开仓 
         self.amount = runbet.get_amount()      # 买入卖出数量
         self.maxLoass = runbet.get_maxLoss()   # 最大亏损比率
     
@@ -70,25 +70,19 @@ class MainRun():
             # 超过波动率
             if abs(volare) > self.expectVolare: 
                 if volare > 0 : # 满足代表 波动率为+
-                    if info['notional'] != "0": # 代表 已经开仓
-                        if self.judge_direction(info['positionAmt']):
-                            print("加杠杆！")
-                            if leverage<10 :api.set_leverage(self.symbol,leverage+1)
-                        else:             
-                            print("减杠杆！")
-                            if leverage>1 : api.set_leverage(self.symbol, leverage-1)                                            
+                    if info['notional'] != "0" and not self.judge_direction(): # 已经开仓 并 做空
+                        print("减仓！")
+                        msg.sell_market_msg(self.symbol,self.amount)                  
                     else: # 未开仓,做多开仓
+                        print("加仓！")
                         msg.buy_market_msg(self.symbol,self.amount)
                 
                 else: # 波动率为 负
-                    if info['notional'] != "0": # 代表 已经开仓
-                        if self.judge_direction(info['positionAmt']):
-                            print("减杠杆！")
-                            if leverage>1 : api.set_leverage(self.symbol,leverage-1)
-                        else:             
-                            print("加杠杆！")
-                            if leverage<10: api.set_leverage(self.symbol, leverage+1)                                            
+                    if info['notional'] != "0" and self.judge_direction(): # 代表 已经开仓
+                        print("加仓！")
+                        msg.buy_market_msg(self.symbol,self.amount)          
                     else: # 未开仓,做空开仓
+                        print("减仓")
                         msg.sell_market_msg(self.symbol,self.amount)                            
 
         else:            

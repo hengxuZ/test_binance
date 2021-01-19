@@ -43,7 +43,16 @@ class MainRun():
             return True
         else:
             return False
-            
+        
+    def judge_is_firstPosition(self, positionNum):
+        '''
+            positionNum : 当前持仓量
+            判断持仓量是否为第一次买入or卖出
+            @return blllean 
+        '''   
+                 
+        flag = True if abs(float(positionNum)) == self.amount else False
+        return flag
             
             
     # 主函数
@@ -51,14 +60,13 @@ class MainRun():
         
         info=self.get_openPositionInfo()
         # print(info)
-        leverage = int(info['leverage'])
-                    
+        leverage = int(info['leverage'])          
         # 检测收益有无为负流程
         if info['notional'] != "0": # 已经开仓
             responseRate = round(float(info['unRealizedProfit']) / leverage / abs(float(info['notional'])),3)  # 盈利率
             # print(info)
             print("收益率:{rate}".format(rate=responseRate))
-            if (leverage != 1 and responseRate <= 0.01) or (leverage == 1 and responseRate <= -self.maxLoass): # 满足则平仓
+            if (self.judge_is_firstPosition(info["positionAmt"]) and responseRate <= -self.maxLoass) or (not self.judge_is_firstPosition(info["positionAmt"]) and responseRate <= 0): # 满足则平仓
                 self.closePositionDirection(info['positionAmt'])
                           
         # 波动率检测
@@ -70,21 +78,34 @@ class MainRun():
             # 超过波动率
             if abs(volare) > self.expectVolare: 
                 if volare > 0 : # 满足代表 波动率为+
-                    if info['notional'] != "0" and not self.judge_direction(): # 已经开仓 并 做空
-                        print("减仓！")
-                        msg.sell_market_msg(self.symbol,self.amount)                  
-                    else: # 未开仓,做多开仓
-                        print("加仓！")
-                        msg.buy_market_msg(self.symbol,self.amount)
+
+                    if info['notional'] != "0": #开仓
+                        # 做多 加仓
+                        if self.judge_direction(): 
+                            print("加仓！")
+                            msg.buy_market_msg(self.symbol,self.amount)   
+                        # 持仓量 != 一手的买入量
+                        elif not self.judge_is_firstPosition(info["positionAmt"]):
+                            print("减仓！")
+                            msg.buy_market_msg(self.symbol,self.amount)                                                                 
+                    else:
+                        print("做多开仓")    
+                        msg.buy_market_msg(self.symbol,self.amount)                            
                 
                 else: # 波动率为 负
-                    if info['notional'] != "0" and self.judge_direction(): # 代表 已经开仓
-                        print("加仓！")
-                        msg.buy_market_msg(self.symbol,self.amount)          
-                    else: # 未开仓,做空开仓
-                        print("减仓")
-                        msg.sell_market_msg(self.symbol,self.amount)                            
-
+                    
+                    if info['notional'] != "0":
+                        # 做多 加仓
+                        if not self.judge_direction(): 
+                            print("加仓！")
+                            msg.sell_market_msg(self.symbol,self.amount)   
+                        # 持仓量 != 一手的买入量
+                        elif not self.judge_is_firstPosition(info["positionAmt"]):
+                            print("减仓！")
+                            msg.buy_market_msg(self.symbol,self.amount)                                                                 
+                    else:
+                        print("做空开仓")    
+                        msg.sell_market_msg(self.symbol,self.amount)  
         else:            
             ins.lastPrice = curPrice # 刚启动上一份时间中市场价格为空  
             

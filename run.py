@@ -118,11 +118,11 @@ class MainRun():
         
 if __name__ == "__main__":
     ins = MainRun()
-    # try:
-    #     while True:
-    #         ins.run()
-    # except BaseException as e:
-    #     msg.dingding_warn("报警：交易对{symbol},停止运行".format(symbol=ins.symbol))
+    try:
+        while True:
+            ins.run()
+    except BaseException as e:
+        msg.dingding_warn("报警：交易对{symbol},停止运行".format(symbol=ins.symbol))
     # 调试阶段
-    while True:
-        ins.run()
+    #while True:
+    #    ins.run()

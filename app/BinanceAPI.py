@@ -38,7 +38,7 @@ class BinanceAPI(object):
         time.sleep(1)
         return self._get(path, params)
     
-    def future_market_order(self,side, market, quantity):
+    def future_limit_order(self,side, market, quantity, price):
         
         ''' 合约市价单
             :param side: 做多or做空 BUY SELL
@@ -46,7 +46,7 @@ class BinanceAPI(object):
             :param quantity: 购买量
         '''
         path = "%s/fapi/v1/order" % self.FUTURE_URL
-        params = self._order(market, quantity, side)
+        params = self._order(market, quantity, side,price)
         return self._post(path, params)
 
     def get_ticker_price(self,market):

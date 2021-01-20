@@ -26,14 +26,14 @@ class MainRun():
         else:
             return None
         
-    def closePositionDirection(self,positionAmt):
+    def closePositionDirection(self,positionAmt,curPrice):
         '''执行平仓'''
         print("平仓")
         total = abs(float(positionAmt))
         if float(positionAmt) < 0 : # 小于0代表做空，则做多卖出
-            msg.buy_market_msg(self.symbol,total) 
+            msg.buy_limit_msg(self.symbol,total,curPrice) 
         else:
-            msg.sell_market_msg(self.symbol,total) 
+            msg.sell_limit_msg(self.symbol,total,curPrice) 
     
     def judge_direction(self, positionAmt):
         '''
@@ -61,17 +61,17 @@ class MainRun():
         
         info=self.get_openPositionInfo()
         # print(info)
-        leverage = int(info['leverage'])          
+        leverage = int(info['leverage'])  
+        curPrice = api.get_ticker_price(self.symbol) #获取当前价格        
         # 检测收益有无为负流程
         if info['notional'] != "0": # 已经开仓
             responseRate = round(float(info['unRealizedProfit']) / leverage / abs(float(info['notional'])),3)  # 盈利率
             # print(info)
             print("收益率:{rate}".format(rate=responseRate))
             if (self.judge_is_firstPosition(info["positionAmt"]) and responseRate <= -self.maxLoass) or (not self.judge_is_firstPosition(info["positionAmt"]) and responseRate <= 0): # 满足则平仓
-                self.closePositionDirection(info['positionAmt'])
+                self.closePositionDirection(info['positionAmt'],curPrice)
                           
         # 波动率检测
-        curPrice = api.get_ticker_price(self.symbol)
         if ins.lastPrice != None:    
             volare = round((curPrice - ins.lastPrice) / ins.lastPrice,3) # 波动率
             ins.lastPrice = curPrice
@@ -86,14 +86,14 @@ class MainRun():
                         # 做多 加仓
                         if self.judge_direction(info['positionAmt']) and responseRate >= self.smallProfit: 
                             print("加仓！")
-                            msg.buy_market_msg(self.symbol,self.amount/4)   
+                            msg.buy_limit_msg(self.symbol,self.amount/4,curPrice)   
                         # 持仓量 != 一手的买入量
                         # elif not self.judge_is_firstPosition(info["positionAmt"]):
                         #     print("减仓！")
-                        #     msg.buy_market_msg(self.symbol,self.amount)                                                                 
+                        #     msg.buy_limit_msg(self.symbol,self.amount)                                                                 
                     else:
                         print("做多开仓")    
-                        msg.buy_market_msg(self.symbol,self.amount)                            
+                        msg.buy_limit_msg(self.symbol,self.amount,curPrice)                            
                 
                 else: # 波动率为 负
                     
@@ -102,14 +102,14 @@ class MainRun():
                         responseRate = round(float(info['unRealizedProfit']) / leverage / abs(float(info['notional'])),3)  # 盈利率
                         if not self.judge_direction(info['positionAmt']) and responseRate >= self.smallProfit: 
                             print("加仓！")
-                            msg.sell_market_msg(self.symbol,self.amount/4)   # 加仓只加25%
+                            msg.sell_limit_msg(self.symbol,self.amount/4,curPrice)   # 加仓只加25%
                         # 持仓量 != 一手的买入量
                         # elif not self.judge_is_firstPosition(info["positionAmt"]):
                         #     print("减仓！")
-                        #     msg.buy_market_msg(self.symbol,self.amount)                                                                 
+                        #     msg.buy_limit_msg(self.symbol,self.amount)                                                                 
                     else:
                         print("做空开仓")    
-                        msg.sell_market_msg(self.symbol,self.amount)  
+                        msg.sell_limit_msg(self.symbol,self.amount,curPrice)  
         else:            
             ins.lastPrice = curPrice # 刚启动上一份时间中市场价格为空  
             
@@ -118,11 +118,11 @@ class MainRun():
         
 if __name__ == "__main__":
     ins = MainRun()
-    try:
-        while True:
-            ins.run()
-    except BaseException as e:
-        msg.dingding_warn("报警：交易对{symbol},停止运行".format(symbol=ins.symbol))
+    # try:
+    #     while True:
+    #         ins.run()
+    # except BaseException as e:
+    #     msg.dingding_warn("报警：交易对{symbol},停止运行".format(symbol=ins.symbol))
     # 调试阶段
-    # while True:
-    #     ins.run()
+    while True:
+        ins.run()

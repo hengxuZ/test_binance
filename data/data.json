@@ -1,8 +1,8 @@
 {
-    "symbol": "ENJUSDT",
+    "symbol": "FTMUSDT",
     "waitTime": 0.5,
     "expectVolare":0.005,
-    "amount":20,
+    "amount":100,
     "smallProfit":0.02,
     "maxLoss":0.01
 }
